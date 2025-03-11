@@ -37,7 +37,7 @@ void draw_line_incremental(int x1, int y1, int x2, int y2, int color[3]);
 
 void draw_line(int x1, int y1, int x2, int y2, int color[3]);
 
-
+void draw_triangle0(int x1, int y1, int x2, int y2, int color[3]);
 
 #endif
 

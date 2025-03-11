@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "utils.h"
 
@@ -294,14 +295,22 @@ void draw_line(int x1, int y1, int x2, int y2, int color[3]){
     draw_line_incremental(x1, y1, x2, y2, color);
 }
 
+void draw_triangle0(int x1, int y1, int x2, int y2, int color[3]){
 
+    //swap cords if needed
+    if(x2 < x1){
+        swap(&x1, &x2);
+        swap(&y1, &y2);
+    }
 
+    int m = (y2 - y1) / (x2 - x1);
+    // set pixels
+    for (int i = x1; i <= x2; i++) {
+        int y;
+        for(int j = y1; j <= y2; j++){
+            y = y1 + (i - x1)*m;
+            set_pixel(i, y, color);
+        }
+    }
 
-
-
-
-
-
-
-
-
+}
