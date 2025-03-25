@@ -1,4 +1,3 @@
-
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -10,9 +9,9 @@
 #define HEIGHT 100
 #define PI 3.141592
 
-void set_pixel(int i, int j, int c[3]);
+void set_pixel(int i, int j, int color[3]);
 
-void set_pixel_sprite(int i, int j, int c[3]);
+void set_pixel_sprite(int i, int j, int color[3]);
 
 int load_sprite();
 
@@ -24,6 +23,6 @@ int save_pixels();
 
 void swap(int *a, int *b);
 
-void draw_sprite(int tx, int ty, int sx, int sy, float ang);
+void draw_sprite(int tx, int ty, int sx, int sy, float angle);
 
 #endif
