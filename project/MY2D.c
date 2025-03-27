@@ -350,3 +350,53 @@ void draw_circle_midpoint_v2(int xc, int yc, int r, int color[3]){
         circle_points(xc, yc, x, y, color);
     }
 }
+
+void draw_ellipse_midpoint(int cx, int cy, int a, int b, int color[3]){
+    int x = 0, y = b;
+    float a2 = (float)(a * a);
+    float b2 = (float)(b * b);
+    float d1 = b2 - a2 * b + 0.25f * a2;
+    float dx = 2 * b2 * x;
+    float dy = 2 * a2 * y;
+    
+    // Region 1: slope > -1
+    while(dx < dy){
+        set_pixel(cx + x, cy + y, color);
+        set_pixel(cx - x, cy + y, color);
+        set_pixel(cx + x, cy - y, color);
+        set_pixel(cx - x, cy - y, color);
+        
+        if(d1 < 0){
+            x++;
+            dx = 2 * b2 * x;
+            d1 += dx + b2;
+        } else {
+            x++;
+            y--;
+            dx = 2 * b2 * x;
+            dy = 2 * a2 * y;
+            d1 += dx - dy + b2;
+        }
+    }
+    
+    float d2 = b2 * (x + 0.5f) * (x + 0.5f) + a2 * (y - 1) * (y - 1) - a2 * b2;
+    // Region 2: slope <= -1
+    while(y >= 0){
+        set_pixel(cx + x, cy + y, color);
+        set_pixel(cx - x, cy + y, color);
+        set_pixel(cx + x, cy - y, color);
+        set_pixel(cx - x, cy - y, color);
+        
+        if(d2 > 0){
+            y--;
+            dy = 2 * a2 * y;
+            d2 += -dy + a2;
+        } else {
+            x++;
+            y--;
+            dx = 2 * b2 * x;
+            dy = 2 * a2 * y;
+            d2 += dx - dy + a2;
+        }
+    }
+}

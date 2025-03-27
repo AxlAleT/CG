@@ -8,22 +8,24 @@ int main() {
         return 1;
     }
 
+    int blue[3] = {0, 0, 255};
+    int yellow[3] = {255, 255, 0};
+    int green[3] = {0, 255, 0};
+    int gray[3] = {100, 100, 100};
+    int red[3] = {255, 0, 0};
+    int white[3] = {255, 255, 255};
+
     // draw sprite on image
     //draw_sprite(20, 80, 4, 4, 30.0);
 
-    int gray[3] = {100, 100, 100};
     //draw_fill_rect(70, 70, 10, 10, gray);
 
-    int red[3] = {255, 0, 0};
     //draw_fill_circle(30, 30, 20, red);
 
-    int white[3] = {255, 255, 255};
     //draw_circle_v0(80, 30, 20, white);  // unfilled circle v0
     //draw_circle_v1(80, 80, 20, white);  // unfilled circle v1
 
-    int green[3] = {0, 255, 0};
-
-    draw_line(10, 50, 40, 100, green);  // slope greater than 1
+   /*  draw_line(10, 50, 40, 100, green);  // slope greater than 1
     draw_line(10, 50, 100, 40, green); // slope less than 1
     draw_line(10, 50, 100, 60, green); // slope greater than -1
     draw_line(10, 50, 40, 0, green);   // slope less than -1
@@ -31,13 +33,11 @@ int main() {
     draw_line(10, 50, 40, 80, red);    // slope  1
     draw_line(10, 50, 40, 20, red);    // slope -1
 
-    int blue[3] = {0, 0, 255};
-    int yellow[3] = {255, 255, 0};
-
     draw_circle_midpoint_v0(50, 50, 10, yellow);
     draw_circle_midpoint_v1(50, 50, 20, white);
-    draw_circle_midpoint_v2(50, 50, 30, blue);
+    draw_circle_midpoint_v2(50, 50, 30, blue); */
 
+    draw_ellipse_midpoint(50, 50, 40, 10, yellow);
     //draw_triangle_v0(10, 10, 80, 80, blue);
 
     // Test lines in all four directions

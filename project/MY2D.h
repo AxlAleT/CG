@@ -32,4 +32,6 @@ void draw_circle_midpoint_v1(int cx, int cy, int r, int color[3]);
 
 void draw_circle_midpoint_v2(int cx, int cy, int r, int color[3]);
 
+void draw_ellipse_midpoint(int cx, int cy, int a, int b, int color[3]);
+
 #endif
