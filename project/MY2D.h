@@ -34,4 +34,10 @@ void draw_circle_midpoint_v2(int cx, int cy, int r, int color[3]);
 
 void draw_ellipse_midpoint(int cx, int cy, int a, int b, int color[3]);
 
+void draw_poligon_line(int cords[][2], int n, int color[3]);
+
+void draw_star_line(int cords[][2], int n, int color[3]);
+
+void gen_polygon(int n, int r, int cx, int cy, int color[3]);
+
 #endif

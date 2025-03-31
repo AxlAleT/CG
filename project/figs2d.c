@@ -37,7 +37,11 @@ int main() {
     draw_circle_midpoint_v1(50, 50, 20, white);
     draw_circle_midpoint_v2(50, 50, 30, blue); */
 
-    draw_ellipse_midpoint(50, 50, 40, 10, yellow);
+    //draw_ellipse_midpoint(50, 50, 40, 10, yellow);
+
+    gen_polygon(10, 30, 50, 50, red); // pentagon
+
+
     //draw_triangle_v0(10, 10, 80, 80, blue);
 
     // Test lines in all four directions

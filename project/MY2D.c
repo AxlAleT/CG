@@ -244,7 +244,7 @@ void draw_line(int x1, int y1, int x2, int y2, int color[3]){
     }
 
     // any other case
-    draw_line_midpoint(x1, y1, x2, y2, color);
+    draw_line_incremental(x1, y1, x2, y2, color);
 }
 
 void draw_triangle_v0(int x1, int y1, int x2, int y2, int color[3])
@@ -399,4 +399,45 @@ void draw_ellipse_midpoint(int cx, int cy, int a, int b, int color[3]){
             d2 += dx - dy + a2;
         }
     }
+}
+
+
+void draw_polygon_line(int cords[][2], int n, int color[3]){
+    for (int i = 0; i < n; i++)
+    {
+        int x1 = cords[i][0];
+        int y1 = cords[i][1];
+        int x2 = cords[(i + 1) % n][0];
+        int y2 = cords[(i + 1) % n][1];
+        draw_line(x1, y1, x2, y2, color);
+    }
+}
+
+
+void draw_star_line(int cords[][2], int n, int color[3]){
+    // Calculate optimal k for maximum pointiness
+    int k = (n % 2 == 0) ? (n/2 + 1) : n/2;
+    
+    for (int i = 0; i < n; i++)
+    {
+        int x1 = cords[i][0];
+        int y1 = cords[i][1];
+        int x2 = cords[(i + k) % n][0];
+        int y2 = cords[(i + k) % n][1];
+        draw_line(x1, y1, x2, y2, color);
+    }
+}
+
+
+void gen_polygon(int n, int r, int cx, int cy, int color[3]){
+    // generate polygon points
+    int cords[n][2];
+    for (int i = 0; i < n; i++)
+    {
+        cords[i][0] = cx + r * cos(2 * PI * i / n);
+        cords[i][1] = cy + r * sin(2 * PI * i / n);
+    }
+
+    // draw polygon
+    draw_star_line(cords, n, color);
 }
