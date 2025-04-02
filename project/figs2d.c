@@ -39,8 +39,17 @@ int main() {
 
     //draw_ellipse_midpoint(50, 50, 40, 10, yellow);
 
-    gen_polygon(10, 30, 50, 50, red); // pentagon
+    // Create an array to store polygon coordinates
+    int vertices = 7;  // Number of vertices in the polygon
+    int polygon[vertices][2]; // Array to store coordinates
 
+    //gen_polygon_coords(vertices, 30, 50, 50, polygon); // Generate polygon coordinates
+    //draw_star_line(polygon, vertices, red); // Draw star line   
+    // Generate polygon coordinates
+    gen_star_coords(vertices, 30, 50, 50, polygon);
+    
+    // Fill the polygon with red color
+    draw_polygon_line(polygon, vertices, red);
 
     //draw_triangle_v0(10, 10, 80, 80, blue);
 

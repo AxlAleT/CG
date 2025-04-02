@@ -414,30 +414,96 @@ void draw_polygon_line(int cords[][2], int n, int color[3]){
 }
 
 
-void draw_star_line(int cords[][2], int n, int color[3]){
-    // Calculate optimal k for maximum pointiness
-    int k = (n % 2 == 0) ? (n/2 + 1) : n/2;
+// Modified gen_star_coords using gen_polygon_coords and star reordering logic
+void gen_star_coords(int n, int r, int cx, int cy, int cords[][2]){
+    int polygon[n][2];
     
-    for (int i = 0; i < n; i++)
-    {
-        int x1 = cords[i][0];
-        int y1 = cords[i][1];
-        int x2 = cords[(i + k) % n][0];
-        int y2 = cords[(i + k) % n][1];
-        draw_line(x1, y1, x2, y2, color);
+    // Generate regular polygon coordinates using outer radius 'r'
+    gen_polygon_coords(n, r, cx, cy, polygon);
+    
+    // Calculate k for star reordering (same as in draw_star_line)
+    int k = (n % 2 == 0) ? (n / 2 + 1) : n / 2;
+    for (int i = 0; i < n; i++){
+        int index = (i * k) % n;
+        cords[i][0] = polygon[index][0];
+        cords[i][1] = polygon[index][1];
     }
 }
 
-
-void gen_polygon(int n, int r, int cx, int cy, int color[3]){
-    // generate polygon points
-    int cords[n][2];
+// New function that only generates coordinates without drawing
+void gen_polygon_coords(int n, int r, int cx, int cy, int cords[][2]){
     for (int i = 0; i < n; i++)
     {
         cords[i][0] = cx + r * cos(2 * PI * i / n);
         cords[i][1] = cy + r * sin(2 * PI * i / n);
     }
+}
 
-    // draw polygon
-    draw_star_line(cords, n, color);
+void intersect(int cords[][2], int n, int y, Intersections *isect) {
+    isect->count = 0;
+    
+    // Check each edge of the polygon
+    for (int i = 0; i < n; i++) {
+        int x1 = cords[i][0];
+        int y1 = cords[i][1];
+        int x2 = cords[(i + 1) % n][0];
+        int y2 = cords[(i + 1) % n][1];
+        
+        // Check if the horizontal line at y intersects with this edge
+        if ((y1 <= y && y2 > y) || (y2 <= y && y1 > y)) {
+            // Calculate x-coordinate of intersection
+            // Using the line equation: x = x1 + (x2-x1)*(y-y1)/(y2-y1)
+            if (y1 != y2) { // Avoid division by zero
+                int x = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
+                
+                // Ensure we don't exceed the array bounds
+                if (isect->count < MAX_INTERSECT) {
+                    isect->x[isect->count++] = x;
+                }
+            }
+        }
+    }
+}
+
+void bubble_sort(Intersections *isect) {
+    for (int i = 0; i < isect->count - 1; i++) {
+        for (int j = 0; j < isect->count - i - 1; j++) {
+            if (isect->x[j] > isect->x[j + 1]) {
+                int temp = isect->x[j];
+                isect->x[j] = isect->x[j + 1];
+                isect->x[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void draw_fill_polygon(int cords[][2], int n, int color[3]) {
+    // Find min and max y-coordinates to determine the scan line range
+    int min_y = cords[0][1];
+    int max_y = cords[0][1];
+    
+    for (int i = 1; i < n; i++) {
+        if (cords[i][1] < min_y) min_y = cords[i][1];
+        if (cords[i][1] > max_y) max_y = cords[i][1];
+    }
+    
+    // Scan line algorithm
+    Intersections isect;
+    for (int y = min_y; y <= max_y; y++) {
+        // Find intersections
+        intersect(cords, n, y, &isect);
+        
+        // Sort intersections
+        bubble_sort(&isect);
+        
+        // Draw horizontal lines between pairs of intersections
+        for (int i = 0; i < isect.count; i += 2) {
+            if (i + 1 < isect.count) {
+                draw_line(isect.x[i], y, isect.x[i + 1], y, color);
+            }
+        }
+    }
+    
+    // Optionally draw the outline of the polygon
+    draw_polygon_line(cords, n, color);
 }
