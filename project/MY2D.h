@@ -43,6 +43,7 @@ void draw_ellipse_midpoint(int cx, int cy, int a, int b, int color[3]);
 
 void draw_polygon_line(int cords[][2], int n, int color[3]);
 
+
 // New function to generate coordinates only
 void gen_polygon_coords(int n, int r, int cx, int cy, int cords[][2]);
 

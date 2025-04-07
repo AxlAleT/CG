@@ -40,7 +40,7 @@ int main() {
     //draw_ellipse_midpoint(50, 50, 40, 10, yellow);
 
     // Create an array to store polygon coordinates
-    int vertices = 7;  // Number of vertices in the polygon
+    int vertices = 11;  // Number of vertices in the polygon
     int polygon[vertices][2]; // Array to store coordinates
 
     //gen_polygon_coords(vertices, 30, 50, 50, polygon); // Generate polygon coordinates
