@@ -1,1 +1,7 @@
 SDL/*
+build/*
+*.png
+*.ppm
+.vscode/*
+project/build/*
+project/.vscode/*
