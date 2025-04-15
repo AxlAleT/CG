@@ -6,7 +6,7 @@ int pixels[WIDTH][HEIGHT][3];
 // sprite
 int sprite[16][16][3];
 
-char *sprite_src_name = "marioRCP.txt";
+char *sprite_src_name = "../test/marioRCP.txt";
 char *output_file_name = "out.ppm";
 
 // colors

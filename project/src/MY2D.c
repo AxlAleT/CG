@@ -402,7 +402,7 @@ void draw_ellipse_midpoint(int cx, int cy, int a, int b, int color[3]){
 }
 
 
-void draw_polygon_line(int cords[][2], int n, int color[3]){
+void draw_poly(int cords[][2], int n, int color[3]){
     for (int i = 0; i < n; i++)
     {
         int x1 = cords[i][0];
@@ -505,5 +505,5 @@ void draw_fill_polygon(int cords[][2], int n, int color[3]) {
     }
     
     // Optionally draw the outline of the polygon
-    draw_polygon_line(cords, n, color);
+    draw_poly(cords, n, color);
 }

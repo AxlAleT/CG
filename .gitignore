@@ -5,4 +5,7 @@ build/*
 .vscode/*
 project/build/*
 project/.vscode/*
+project/bin/*
+project/obj/*
+project/.idea/*
 *.out
