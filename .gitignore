@@ -9,3 +9,10 @@ project/bin/*
 project/obj/*
 project/.idea/*
 *.out
+
+projectSDL/build/*
+projectSDL/.vscode/*
+projectSDL/bin/*
+projectSDL/obj/*
+projectSDL/.idea/*
+
