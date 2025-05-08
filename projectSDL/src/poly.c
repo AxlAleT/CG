@@ -109,5 +109,51 @@ void draw_fill_poly(int v[][2], int n, int c[3]) {
 }
 
 void draw_textured_poly(int v[][2], int n, int sprite[16][16][3], float m_inv[2][2]) {
-    // TO DO
+    // Find min and max y-coordinates to determine the scan line range
+    int min_y = v[0][1];
+    int max_y = v[0][1];
+    int min_x = v[0][0];
+    int max_x = v[0][0];
+
+    // Find the bounding box of the polygon
+    for (int i = 1; i < n; i++) {
+        if (v[i][1] < min_y) min_y = v[i][1];
+        if (v[i][1] > max_y) max_y = v[i][1];
+        if (v[i][0] < min_x) min_x = v[i][0];
+        if (v[i][0] > max_x) max_x = v[i][0];
+    }
+
+    // Scan line algorithm
+    Intersections isect;
+    for (int y = min_y; y <= max_y; y++) {
+        // Find intersections with the scan line
+        intersect(v, n, y, &isect);
+        
+        // Sort intersections
+        sort(&isect);
+        
+        // Process pairs of intersections
+        for (int i = 0; i < isect.count; i += 2) {
+            if (i + 1 < isect.count) {
+                // Fill between each pair of intersections
+                for (int x = isect.x[i]; x <= isect.x[i + 1]; x++) {
+                    // Apply inverse transformation to map screen coordinates to texture coordinates
+                    float u = m_inv[0][0] * x + m_inv[0][1] * y;
+                    float v = m_inv[1][0] * x + m_inv[1][1] * y;
+                    
+                    // Map to texture space (0-15)
+                    int tx = (int)u % 16;
+                    int ty = (int)v % 16;
+                    
+                    // Ensure texture coordinates are positive
+                    if (tx < 0) tx += 16;
+                    if (ty < 0) ty += 16;
+                    
+                    // Draw the pixel with texture color
+                    set_pixel(x, y, sprite[tx][ty]);
+                }
+            }
+        }
+    }
 }
+
