@@ -152,12 +152,35 @@ int main(int argc, char *argv[]) {
 	int show_faces = 1;
 	int use_mario_sprite = 1;
 
+	// Add shape information text
+	char shape_name[32] = "Shape: Grid";
 
 	// Main loop
 	int quit = 0;
 	SDL_Event e;
 	while (!quit) {
 		usleep(50000);
+		
+		// Handle shape transition animation
+		if (is_changing) {
+			t += deltaT;
+			if (t >= 1.0) {
+				t = 1.0;
+				is_changing = 0;
+				
+				// Copy next shape to current shape
+				for (int i = 0; i < M*N; i++) {
+					curr[i][0] = next[i][0];
+					curr[i][1] = next[i][1];
+					curr[i][2] = next[i][2];
+				}
+			}
+			
+			// Apply interpolation to update the mesh
+			interpolate(curr, next, t, m.base_verts, M*N);
+			should_update = 1;
+		}
+		
 		// Manage events
 		while (SDL_PollEvent(&e)) {
 			if (e.type == SDL_QUIT)
@@ -188,22 +211,59 @@ int main(int argc, char *argv[]) {
 						obj.tx+=0.1;
 					else	cam.angY += 5.0;
 				}else if (e.key.keysym.sym == SDLK_a) {
-					//printf("A\n");
-					if (!is_changing && current!=GRID){
+					//printf("A - Grid\n");
+					if (!is_changing && current != GRID) {
 						current = GRID;
 						create_grid_verts(N, M, next);
-						t=0;
-						is_changing=1;
-						should_update=1;
+						t = 0.0;
+						is_changing = 1;
+						should_update = 1;
+						sprintf(shape_name, "Shape: Grid");
 					}
-				}else if (e.key.keysym.sym == SDLK_b) {
-					//printf("B\n");
 				}else if (e.key.keysym.sym == SDLK_c) {
-					//printf("C\n");
-				}else if (e.key.keysym.sym == SDLK_d) {
-					//printf("D\n");
-				}else if (e.key.keysym.sym == SDLK_e) {
-					//printf("E\n");
+					//printf("C - Cylinder\n");
+					if (!is_changing && current != CYLINDER) {
+						current = CYLINDER;
+						create_cylinder_verts(N, M, next);
+						t = 0.0;
+						is_changing = 1;
+						should_update = 1;
+						sprintf(shape_name, "Shape: Cylinder");
+					}
+				}else if (e.key.keysym.sym == SDLK_o) {
+					//printf("O - Cone\n");
+					if (!is_changing && current != CONE) {
+						current = CONE;
+						create_cone_verts(N, M, next);
+						t = 0.0;
+						is_changing = 1;
+						should_update = 1;
+						sprintf(shape_name, "Shape: Cone");
+					}
+				}else if (e.key.keysym.sym == SDLK_s) {
+					//printf("S - Sphere\n");
+					if (!is_changing && current != SPHERE) {
+						current = SPHERE;
+						create_sphere_verts(N, M, next);
+						t = 0.0;
+						is_changing = 1;
+						should_update = 1;
+						sprintf(shape_name, "Shape: Sphere");
+					}
+				}else if (e.key.keysym.sym == SDLK_t) {
+					//printf("T - Torus\n");
+					if (!is_changing && current != TORUS) {
+						current = TORUS;
+						create_torus_verts(N, M, TORUS_RATIO, next);
+						t = 0.0;
+						is_changing = 1;
+						should_update = 1;
+						sprintf(shape_name, "Shape: Torus");
+					}
+				}else if (e.key.keysym.sym == SDLK_r) {
+					//printf("R - Rotate object\n");
+					obj.angY += 15.0;
+					if (obj.angY >= 360.0) obj.angY -= 360.0;
 				}else if (e.key.keysym.sym == SDLK_p) {
 					//printf("P\n");
 					cam.is_flat_proj = !cam.is_flat_proj;
@@ -219,37 +279,27 @@ int main(int argc, char *argv[]) {
 				}else if (e.key.keysym.sym == SDLK_4) {
 					//printf("4\n");
 					use_mario_sprite = !use_mario_sprite;
-				//}else if (e.key.keysym.sym == SDLK_5) {
-					//printf("5\n");
-				//}else {
-					//printf("Pressed key: %s\n", SDL_GetKeyName(e.key.keysym.sym));
 				}
-			//}else if (e.type == SDL_KEYUP) {
-				//printf("Released key: %s\n", SDL_GetKeyName(e.key.keysym.sym));
 			}
 		}
-
-		/*
-		// Check keyboard state
-		const Uint8 *state = SDL_GetKeyboardState(NULL);
-		if (state[SDL_SCANCODE_W]) {
-			printf("W key pressed.\n");
-		}
-		*/
 
 		// Clean the screen
 		SDL_RenderClear(renderer);
 
-		/**************
-			Change here the image
-		***************/
-		//change_image_test();
+		// Initialize with dark gray background
+		init_image(0xff1f1f1f);
+		
+		// Draw the current shape name in the bottom left corner
+		draw_text(10, HEIGHT - 30, shape_name, white);
+		
+		// Draw the usage instructions in the bottom right corner
+		draw_text(WIDTH - 300, HEIGHT - 90, "Controls:", white);
+		draw_text(WIDTH - 300, HEIGHT - 70, "A: Grid, C: Cylinder, O: Cone", white);
+		draw_text(WIDTH - 300, HEIGHT - 50, "S: Sphere, T: Torus, R: Rotate", white);
+		draw_text(WIDTH - 300, HEIGHT - 30, "1-4: Toggle display options", white);
 
-		// draw sprite on image
-		//init_image(0x000000ff);	// black background
-		init_image(0xff1f1f1f);		// dark gray background with alpha (ARGB format)
+		// Draw mario sprite
 		draw_mario_sprite(10, 10, 2, 2, 0.0);
-
 
 		// MESH
 		transform_verts(obj, &m);
@@ -276,7 +326,6 @@ int main(int argc, char *argv[]) {
 			draw_edges(&cube, cam);
 		if (show_verts)
 			draw_verts(&cube, white, cam);
-
 
 		// Update texture with data from the pixel array
 		SDL_UpdateTexture(texture, NULL, pixel, WIDTH*sizeof(unsigned int));

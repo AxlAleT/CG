@@ -139,3 +139,44 @@ void set_pixel(int i, int j, int c[3]){
 	// ARGB format (alpha first, then RGB)
 	pixel[i+j*WIDTH] = (255<<24) | (c[0]<<16) | (c[1]<<8) | c[2];
 }
+
+// Draw text on screen with simple font rendering
+void draw_text(int x, int y, const char* text, int color[3]) {
+    int len = strlen(text);
+    int char_width = 8;
+    int char_height = 12;
+    
+    for (int i = 0; i < len; i++) {
+        char c = text[i];
+        
+        // Very simple font rendering - just rectangular shapes for now
+        for (int cy = 0; cy < char_height; cy++) {
+            for (int cx = 0; cx < char_width; cx++) {
+                // Draw only specific pixels to form simple letter shapes
+                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || 
+                    (c >= '0' && c <= '9') || c == ':' || c == ',' || c == '.' || 
+                    c == '-' || c == '_' || c == ' ') {
+                    
+                    // Skip drawing for spaces
+                    if (c == ' ') continue;
+                    
+                    // Very basic font rendering - just a filled rectangle for each character
+                    // with some simple patterns based on the character shape
+                    if (cx == 0 || cx == char_width-1 || cy == 0 || cy == char_height-1) {
+                        set_pixel(x + i * char_width + cx, y + cy, color);
+                    }
+                    
+                    // For some characters, add specific lines or points
+                    if ((c == 'A' || c == 'E' || c == 'F' || c == 'H') && cy == char_height/2) {
+                        set_pixel(x + i * char_width + cx, y + cy, color);
+                    }
+                    
+                    if (c == ':' && (cy == char_height/3 || cy == 2*char_height/3) && 
+                        cx > char_width/3 && cx < 2*char_width/3) {
+                        set_pixel(x + i * char_width + cx, y + cy, color);
+                    }
+                }
+            }
+        }
+    }
+}
