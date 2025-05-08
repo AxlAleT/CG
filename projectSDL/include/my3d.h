@@ -8,16 +8,16 @@
 
 // camera transform
 typedef struct {
-	float D, d;
-	float angX, angY, angZ;
-	int is_flat_proj;
+    float D, d;
+    float angX, angY, angZ;
+    int is_flat_proj;
 } camera;
 
 // object transform
 typedef struct {
-	float tx, ty, tz;
-	float angX, angY, angZ;
-	float esc;
+    float tx, ty, tz;
+    float angX, angY, angZ;
+    float esc;
 } transform;
 
 // Mesh
@@ -25,27 +25,26 @@ typedef struct {
 #define M 15
 
 typedef struct {
-	int nv, ne, nf;
-	int wireframe_color[3];  // Added wireframe_color field
-	float base_verts[M*N][3];
-	float verts[M*N][3];
-	int edges[2*M*N-M-N][2];
-	int faces[(M-1)*(N-1)][4];
+    int nv, ne, nf;
+    int wireframe_color[3]; // Added wireframe_color field
+    float base_verts[M * N][3];
+    float verts[M * N][3];
+    int edges[2 * M * N - M - N][2];
+    int faces[(M - 1) * (N - 1)][4];
 } mesh;
 
 
 // Interpolate figures (morphing)
 enum Fig {
-	GRID,
-	CYLINDER,
-	CONE,
-	SPHERE,
-	TORUS
+    GRID,
+    CYLINDER,
+    CONE,
+    SPHERE,
+    TORUS
 };
 
 
 void draw_vert(int i, int j, int c[3]);
-
 
 
 // Basic transforms
@@ -88,13 +87,10 @@ void create_cone_verts(int n, int m, float v[][3]);
 void create_sphere_verts(int n, int m, float v[][3]);
 
 #define TORUS_RATIO 0.5
+
 void create_torus_verts(int n, int m, float ratio, float v[][3]);
 
 void interpolate(float curr[][3], float next[][3], float t, float result[][3], int size);
 
 
-
-
-
 #endif
-

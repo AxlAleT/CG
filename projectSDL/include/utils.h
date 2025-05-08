@@ -1,8 +1,8 @@
-
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <string.h> // Add this for strlen in draw_text function
+#include <stdlib.h>
+#include <math.h>
 
 // Image size
 #define WIDTH  640
@@ -30,6 +30,6 @@ int load_mario_sprite();
 
 void draw_mario_sprite(int tx, int ty, int sx, int sy, float ang);
 
-int load_ppm(char* file_name, int sprite[16][16][3]);
+int load_ppm(char *file_name, int sprite[16][16][3]);
 
 #endif
