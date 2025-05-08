@@ -32,8 +32,4 @@ void draw_mario_sprite(int tx, int ty, int sx, int sy, float ang);
 
 int load_ppm(char* file_name, int sprite[16][16][3]);
 
-// Text rendering function
-void draw_text(int x, int y, const char* text, int color[3]);
-
-
 #endif

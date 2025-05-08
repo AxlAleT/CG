@@ -288,15 +288,7 @@ int main(int argc, char *argv[]) {
 
 		// Initialize with dark gray background
 		init_image(0xff1f1f1f);
-		
-		// Draw the current shape name in the bottom left corner
-		draw_text(10, HEIGHT - 30, shape_name, white);
-		
-		// Draw the usage instructions in the bottom right corner
-		draw_text(WIDTH - 300, HEIGHT - 90, "Controls:", white);
-		draw_text(WIDTH - 300, HEIGHT - 70, "A: Grid, C: Cylinder, O: Cone", white);
-		draw_text(WIDTH - 300, HEIGHT - 50, "S: Sphere, T: Torus, R: Rotate", white);
-		draw_text(WIDTH - 300, HEIGHT - 30, "1-4: Toggle display options", white);
+
 
 		// Draw mario sprite
 		draw_mario_sprite(10, 10, 2, 2, 0.0);
