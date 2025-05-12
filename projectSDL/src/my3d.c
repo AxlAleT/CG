@@ -122,27 +122,6 @@ int points_towards_cam(mesh *m, int face_idx, camera cam, float n[3]) {
     return (aux[2] > 0.0);
 }
 
-// map image to quad (asuming flat projection)
-void map_img2quad(int quad[4][2], int sprite[16][16][3]) {
-    float ab[2], ad[2], delta = 1.0 / 16.0;
-
-    ab[0] = quad[1][0] - quad[0][0];
-    ab[1] = quad[1][1] - quad[0][1];
-
-    ad[0] = quad[3][0] - quad[0][0];
-    ad[1] = quad[3][1] - quad[0][1];
-
-    for (int j = 0; j < 16; j++) {
-        for (int i = 0; i < 16; i++) {
-            float u = i * delta;
-            float v = j * delta;
-            int x = quad[0][0] + u * ab[0] + v * ad[0];
-            int y = quad[0][1] + u * ab[1] + v * ad[1];
-            set_pixel(x, y, sprite[j][i]);
-        }
-    }
-}
-
 int calc_m_inv(int quad[4][2], float m_inv[2][2]) {
     float ab[2], ad[2];
 
@@ -169,6 +148,53 @@ int calc_m_inv(int quad[4][2], float m_inv[2][2]) {
     return 1;
 }
 
+
+// map image to quad (asuming flat projection)
+void map_img2quad(int quad[4][2], int sprite[16][16][3]) {
+    float m_inv[2][2];
+    
+    // Calculate inverse transformation matrix
+    if (!calc_m_inv(quad, m_inv)) {
+        return;  // Skip if transformation is not possible
+    }
+    
+    // Calculate bounding box
+    int min_x = quad[0][0], max_x = quad[0][0];
+    int min_y = quad[0][1], max_y = quad[0][1];
+    
+    for (int i = 1; i < 4; i++) {
+        if (quad[i][0] < min_x) min_x = quad[i][0];
+        if (quad[i][0] > max_x) max_x = quad[i][0];
+        if (quad[i][1] < min_y) min_y = quad[i][1];
+        if (quad[i][1] > max_y) max_y = quad[i][1];
+    }
+    
+    // Vector from the first vertex to point in quad
+    float dp[2];
+    
+    // For each pixel in the bounding box
+    for (int y = min_y; y <= max_y; y++) {
+        for (int x = min_x; x <= max_x; x++) {
+            // Calculate vector from quad[0] to the current point
+            dp[0] = x - quad[0][0];
+            dp[1] = y - quad[0][1];
+            
+            // Apply inverse transformation to get texture coordinates
+            float u = m_inv[0][0] * dp[0] + m_inv[0][1] * dp[1];
+            float v = m_inv[1][0] * dp[0] + m_inv[1][1] * dp[1];
+            
+            // Check if the point is inside the texture (0 <= u,v <= 1)
+            if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
+                // Map to sprite coordinates (0-15)
+                int tx = (int)(u * 15.999f);
+                int ty = (int)(v * 15.999f);
+                
+                // Draw the pixel
+                set_pixel(x, y, sprite[tx][ty]);
+            }
+        }
+    }
+}
 
 // vertices management
 
@@ -385,3 +411,4 @@ void interpolate(float curr[][3], float next[][3], float t, float result[][3], i
         result[i][2] = tt * curr[i][2] + t * next[i][2];
     }
 }
+
