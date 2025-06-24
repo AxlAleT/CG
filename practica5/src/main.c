@@ -27,31 +27,19 @@ int main() {
     material yellow_mat = {0, {255, 255, 50}};     // Yellow
     material cyan_mat = {0, {0, 255, 255}};        // Cyan
 
-    // Define positions for each quadric
-    vec3 ground_center = {0.0, -10.0, 0.0};        // Ground plane
-    vec3 sphere_center = {-6.0, 0.0, 0.0};         // Sphere
-    vec3 ellipsoid_center = {0.0, 0.0, 0.0};      // Ellipsoid (position in view)
-    vec3 cylinder_center = {0.0, 0.0, 0.0};        // Cylinder
-    vec3 cone_center = {0.0, 0.0, 1.0};            // Cone
-    vec3 hyperboloid1_center = {6.0, 0.0, 0.0};    // One-sheet hyperboloid
-    vec3 hyperboloid2_center = {-4.5, 0.0, -6.0};  // Two-sheet hyperboloid
-    vec3 paraboloid1_center = {0.0, 0.0, -6.0};    // Elliptic paraboloid
-    vec3 paraboloid2_center = {4.5, 0.0, -6.0};    // Hyperbolic paraboloid
+    // Define positions for three spheres
+    vec3 sphere1_center = {-3.0, 1.0, -10.0};        // Left sphere
+    vec3 sphere2_center = {5.0, 2.0, -10.0};         // Center sphere
+    vec3 sphere3_center = {3.0, 3.0, -10.0};         // Right sphere
 
-    // Create array of all quadrics (only sphere initialized for testing)
-    int num_quad = 1;
-    quadric q[1];
+    // Create array with three spheres
+    int num_quad = 3;
+    quadric q[3];
     
-    // Create all quadric surfaces defined in the readme - with reduced sizes
-    //create_sphere(&q[0], sphere_center, 0.75, blue_mat);                   // Sphere (reduced from 1.5)
-    //create_ellipsoid(&q[0], ellipsoid_center, 0.6, 0.3, 0.4, red_mat);    // Ellipsoid (reduced from 1.0, 1.5, 0.8)
-    //create_cylinder(&q[0], cylinder_center, 0.6, 'y', green_mat);          // Cylinder (reduced from 1.2)
-    create_cone(&q[0], cone_center, 0.5, 0.5, 0.75, orange_mat);           // Cone (reduced from 1.0, 1.0, 1.5)
-    //create_hyperboloid_one_sheet(&q[4], hyperboloid1_center, 0.4, 0.4, 0.6, purple_mat); // One-sheet hyperboloid (reduced from 0.8, 0.8, 1.2)
-    //create_hyperboloid_two_sheet(&q[5], hyperboloid2_center, 0.4, 0.4, 0.5, lime_mat);   // Two-sheet hyperboloid (reduced from 0.8, 0.8, 1.0)
-    //create_elliptic_paraboloid(&q[6], paraboloid1_center, 0.5, 0.5, yellow_mat);         // Elliptic paraboloid (reduced from 1.0, 1.0)
-    //create_hyperbolic_paraboloid(&q[7], paraboloid2_center, 0.5, 0.5, cyan_mat);         // Hyperbolic paraboloid (reduced from 1.0, 1.0)
-    //create_sphere(&q[8], ground_center, 9.0, green_mat);                   // Ground sphere (kept the same size)
+    // Create three spheres with different colors and sizes
+    create_sphere(&q[0], sphere1_center, 3.0, red_mat);      // Left red sphere
+    create_sphere(&q[1], sphere2_center, 1.2, green_mat);    // Center green sphere (slightly larger)
+    create_sphere(&q[2], sphere3_center, 0.8, blue_mat);     // Right blue sphere (smaller)
 
     for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
