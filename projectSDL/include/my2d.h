@@ -15,8 +15,6 @@ void line_midpoint(int x1, int y1, int x2, int y2, int color[3]);
 
 void draw_line(int x1, int y1, int x2, int y2, int color[3]);
 
-
 void draw_circle(int cx, int cy, int radius, int color[3]);
-
 
 #endif

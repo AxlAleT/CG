@@ -92,5 +92,4 @@ void create_torus_verts(int n, int m, float ratio, float v[][3]);
 
 void interpolate(float curr[][3], float next[][3], float t, float result[][3], int size);
 
-
 #endif

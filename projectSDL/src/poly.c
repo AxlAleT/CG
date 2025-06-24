@@ -128,10 +128,10 @@ void draw_textured_poly(int v[][2], int n, int sprite[16][16][3], float m_inv[2]
     for (int y = min_y; y <= max_y; y++) {
         // Find intersections with the scan line
         intersect(v, n, y, &isect);
-        
+
         // Sort intersections
         sort(&isect);
-        
+
         // Process pairs of intersections
         for (int i = 0; i < isect.count; i += 2) {
             if (i + 1 < isect.count) {
@@ -140,15 +140,15 @@ void draw_textured_poly(int v[][2], int n, int sprite[16][16][3], float m_inv[2]
                     // Apply inverse transformation to map screen coordinates to texture coordinates
                     float u = m_inv[0][0] * x + m_inv[0][1] * y;
                     float v = m_inv[1][0] * x + m_inv[1][1] * y;
-                    
+
                     // Map to texture space (0-15)
-                    int tx = (int)u % 16;
-                    int ty = (int)v % 16;
-                    
+                    int tx = (int) u % 16;
+                    int ty = (int) v % 16;
+
                     // Ensure texture coordinates are positive
                     if (tx < 0) tx += 16;
                     if (ty < 0) ty += 16;
-                    
+
                     // Draw the pixel with texture color
                     set_pixel(x, y, sprite[tx][ty]);
                 }
@@ -156,4 +156,3 @@ void draw_textured_poly(int v[][2], int n, int sprite[16][16][3], float m_inv[2]
         }
     }
 }
-

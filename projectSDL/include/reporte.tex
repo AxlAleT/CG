@@ -1,0 +1,572 @@
+% Plantilla de reporte de la Práctica 4: Representación de figuras 3D
+\documentclass[12pt]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{listings}
+\lstdefinestyle{cstyle}{
+    language=C,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!50!black},
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+    tabsize=4
+}
+
+\begin{document}
+
+%-------------------- Portada --------------------
+    \begin{titlepage}
+        \centering
+        {\Large \textbf{Instituto Politécnico Nacional}}\\[0.3cm]
+        {\Large \textbf{Escuela Superior de Cómputo (ESCOM)}}\\[1.5cm]
+
+        {\Huge \textbf{Reporte de la Práctica 4: Representación de figuras 3D}}\\[2cm]
+
+        {\large \textbf{Alumno: Nombre del estudiante}}\\[0.3cm]
+        {\large \textbf{Grupo: XX-XX}}\\[0.3cm]
+        {\large Fecha: \today}\\[3cm]
+
+        %\includegraphics[height=5cm]{logo_ipn.png}\\[2cm]
+
+        \vfill
+    \end{titlepage}
+
+    \tableofcontents
+    \newpage
+
+%-------------------- Desarrollo --------------------
+    \section{Desarrollo de la práctica}
+    En esta sección se describe paso a paso todo lo realizado durante la práctica.
+
+    \subsection{Objetivo}
+    Breve descripción de los objetivos de la práctica.
+
+    \subsection{Proyecciones 3D a 2D}
+
+    Para representar objetos tridimensionales en una superficie bidimensional como la pantalla, es necesario transformar sus coordenadas 3D en coordenadas 2D. Este proceso se conoce como proyección y existen dos enfoques principales: proyección plana (u ortogonal) y proyección en perspectiva.
+
+    \subsubsection{Proyección plana}
+
+    En la proyección plana, los rayos proyectantes son paralelos entre sí y perpendiculares al plano de proyección. Esto da como resultado una visualización sin distorsión de profundidad: los objetos no se ven más pequeños aunque estén lejos de la cámara.
+
+    Las coordenadas proyectadas sobre el plano se obtienen ignorando el eje \( z \), y utilizando directamente las componentes transformadas \( x \) e \( y \):
+
+    \begin{itemize}
+        \item No se realiza ningún escalado según la profundidad.
+        \item Se mantiene la proporción de tamaño independientemente de la distancia.
+    \end{itemize}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{img/proyeccion_plana.png}
+        \caption{Ejemplo de proyección plana.}
+    \end{figure}
+
+    \textbf{Código relevante:}
+
+    La siguiente condición dentro de la función de proyección indica cuándo se aplica una proyección en perspectiva. Si esta condición no se cumple, la proyección es plana:
+
+    \begin{lstlisting}[language=C, caption={Condición para aplicar proyección en perspectiva}]
+if (!cam.is_flat_proj) {
+    x_scr = cam.d * x_scr / (v[2] + cam.D);
+    y_scr = cam.d * y_scr / (v[2] + cam.D);
+}
+    \end{lstlisting}
+
+    Cuando \texttt{cam.is\_flat\_proj == 1}, se omite el escalado con \( z \), resultando en una proyección ortogonal.
+
+    \subsubsection{Proyección en perspectiva}
+
+    La proyección en perspectiva intenta imitar la percepción humana, donde los objetos más alejados se ven más pequeños que los cercanos. Para lograr esto, las coordenadas \( x \) e \( y \) se escalan por un factor inversamente proporcional a la profundidad \( z \):
+
+    \[
+        x_{scr} = d \cdot \frac{x}{z + D}, \quad
+        y_{scr} = d \cdot \frac{y}{z + D}
+    \]
+
+    Donde:
+    \begin{itemize}
+        \item \( d \) es la distancia focal (distancia desde el observador al plano de proyección).
+        \item \( D \) es un desplazamiento de la cámara que permite controlar el punto de fuga.
+    \end{itemize}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{img/proyeccion_perspectiva.png}
+        \caption{Ejemplo de proyección en perspectiva.}
+    \end{figure}
+
+    \textbf{Código representativo:}
+
+    La función de proyección realiza tanto la transformación por rotación como la proyección misma:
+
+    \begin{lstlisting}[language=C, caption={Función de proyección 3D a 2D}]
+void project(float vv[3], int scr[2], camera cam) {
+    float v[3] = { vv[0], vv[1], vv[2] };
+
+    // Rotación de cámara
+    rotateY(v, cam.angY);
+    rotateX(v, cam.angX);
+    rotateZ(v, cam.angZ);
+
+    // Proyección
+    float x_scr = v[0];
+    float y_scr = v[1];
+    if (!cam.is_flat_proj) {
+        x_scr = cam.d * x_scr / (v[2] + cam.D);
+        y_scr = cam.d * y_scr / (v[2] + cam.D);
+    }
+
+    // Transformación de viewport
+    scr[0] = SEMI_WIDTH + VIEW_SCALE * x_scr;
+    scr[1] = SEMI_HEIGHT + VIEW_SCALE * y_scr;
+}
+    \end{lstlisting}
+
+    Esta función es utilizada en otros métodos para dibujar vértices y aristas, como se muestra en el siguiente ejemplo:
+
+    \begin{lstlisting}[language=C, caption={Dibujo de vértices usando proyección}]
+void draw_verts(mesh *m, int c[3], camera cam) {
+    for (int i = 0; i < m->nv; i++) {
+        if (m->verts[i][2] + cam.D < -0.1) {
+            int scr[2];
+            project(m->verts[i], scr, cam);
+            draw_vert(scr[0], scr[1], c);
+        }
+    }
+}
+    \end{lstlisting}
+
+
+    \subsection{Estructura de datos de la malla poligonal}
+
+    Una malla poligonal es una estructura de datos utilizada para representar la geometría superficial de un objeto tridimensional. Está compuesta principalmente por vértices, aristas y caras, organizados de manera que permitan una representación eficiente y flexible de superficies complejas.
+
+    \begin{itemize}
+        \item \textbf{Vértices (vertices)}: Son puntos en el espacio 3D definidos por coordenadas \( (x, y, z) \). Representan las esquinas de los polígonos.
+        \item \textbf{Aristas (edges)}: Son segmentos de línea que conectan pares de vértices. Delimitan los bordes de las caras.
+        \item \textbf{Caras (faces)}: Son superficies planas delimitadas por aristas, usualmente cuadriláteros o triángulos.
+    \end{itemize}
+
+    \textbf{Representación en C:}
+
+    A continuación se muestra la estructura de datos utilizada en el proyecto para representar una malla 3D regular de tamaño \( M \times N \):
+
+    \begin{lstlisting}[language=C, caption={Estructura de datos de la malla}]
+#define N 30
+#define M 15
+
+typedef struct {
+    int nv, ne, nf;
+
+    int wireframe_color[3];
+
+    float base_verts[M * N][3];
+    float verts[M * N][3];
+
+    int edges[2 * M * N - M - N][2];
+    int faces[(M - 1) * (N - 1)][4];
+} mesh;
+    \end{lstlisting}
+
+    Donde:
+    \begin{itemize}
+        \item \texttt{nv = M * N}: representa la cantidad total de vértices en una grilla regular.
+        \item \texttt{ne = 2 * M * N - M - N}: número de aristas (conectando horizontal y verticalmente).
+        \item \texttt{nf = (M - 1) * (N - 1)}: número de caras cuadradas formadas por cada grupo de 4 vértices adyacentes.
+        \item \texttt{base\_verts} y \texttt{verts}: permiten guardar una copia original de los vértices y otra que se modifica con las transformaciones de cámara.
+    \end{itemize}
+
+    \textbf{Inicialización:}
+
+    Una instancia típica de malla puede inicializarse así:
+
+    \begin{lstlisting}[language=C, caption={Inicialización de una malla}]
+mesh m = {
+    M * N,
+    2 * M * N - M - N,
+    (M - 1) * (N - 1),
+    {0, 150, 0}
+};
+    \end{lstlisting}
+
+    Esta estructura modular permite manipular eficientemente la geometría de los objetos 3D, facilitando el renderizado, animación y aplicación de transformaciones.
+
+
+    \subsection{Transformaciones 3D}
+
+    En gráficos por computadora, las transformaciones 3D permiten modificar la posición, tamaño y orientación de los objetos en el espacio tridimensional. Estas transformaciones se aplican a los vértices de los objetos para simular movimiento, rotación o cambios de escala. A continuación, se describen las transformaciones básicas implementadas en este proyecto.
+
+    \subsubsection{Escalamiento}
+
+    El escalamiento modifica el tamaño de un objeto, ya sea de forma uniforme (misma escala en todos los ejes) o no uniforme (escalas distintas por eje).
+
+    \begin{lstlisting}[language=C, caption={Escalamiento uniforme}]
+void scale(float v[3], float esc) {
+    v[0] *= esc;
+    v[1] *= esc;
+    v[2] *= esc;
+}
+    \end{lstlisting}
+
+    \begin{lstlisting}[language=C, caption={Escalamiento no uniforme}]
+void scale2(float v[3], float escX, float escY, float escZ) {
+    v[0] *= escX;
+    v[1] *= escY;
+    v[2] *= escZ;
+}
+    \end{lstlisting}
+
+    \subsubsection{Traslación}
+
+    La traslación desplaza un objeto desde su posición actual a otra nueva, sumando una cantidad constante a cada coordenada.
+
+    \begin{lstlisting}[language=C, caption={Traslación en 3D}]
+void translate(float v[3], float x, float y, float z) {
+    v[0] += x;
+    v[1] += y;
+    v[2] += z;
+}
+    \end{lstlisting}
+
+    \subsubsection{Rotación}
+
+    La rotación gira un objeto alrededor de uno de los ejes cartesianos. Se utilizan las fórmulas clásicas de rotación en el plano para cada eje, transformando las coordenadas del vértice en función del ángulo especificado.
+
+    \begin{lstlisting}[language=C, caption={Rotación respecto al eje X}]
+void rotateX(float v[3], float ang) {
+    float rad = ang * M_PI / 180.0;
+    float y = v[1];
+    float z = v[2];
+    v[1] = y * cos(rad) - z * sin(rad);
+    v[2] = y * sin(rad) + z * cos(rad);
+}
+    \end{lstlisting}
+
+    \begin{lstlisting}[language=C, caption={Rotación respecto al eje Y}]
+void rotateY(float v[3], float ang) {
+    float rad = ang * M_PI / 180.0;
+    float x = v[0];
+    float z = v[2];
+    v[0] = x * cos(rad) + z * sin(rad);
+    v[2] = -x * sin(rad) + z * cos(rad);
+}
+    \end{lstlisting}
+
+    \begin{lstlisting}[language=C, caption={Rotación respecto al eje Z}]
+void rotateZ(float v[3], float ang) {
+    float rad = ang * M_PI / 180.0;
+    float x = v[0];
+    float y = v[1];
+    v[0] = x * cos(rad) - y * sin(rad);
+    v[1] = x * sin(rad) + y * cos(rad);
+}
+    \end{lstlisting}
+
+    \subsection{Rejilla MxN de cuadriláteros}
+
+    \subsubsection{Generación de la rejilla}
+
+    Para modelar figuras en el espacio tridimensional, uno de los pasos iniciales es definir una malla base o \textit{rejilla} de vértices. La función \texttt{create\_grid\_verts} genera una rejilla rectangular de dimensiones $n \times m$, distribuyendo los puntos uniformemente en el plano $XY$ y centrando la malla alrededor del origen. Los valores se normalizan para que la rejilla siempre tenga un ancho y alto aproximados de $[-1, 1]$, independientemente del número de divisiones.
+
+    Cada vértice generado tiene una coordenada $z = 0$, ya que la rejilla se encuentra inicialmente en el plano $XY$.
+
+    \begin{lstlisting}[language=C, caption={Generación de vértices para una rejilla centrada}]
+void create_grid_verts(int n, int m, float v[][3]) {
+    for (int j = 0; j < m; j++)
+        for (int i = 0; i < n; i++) {
+            int idx = j * n + i;
+            v[idx][0] = i - n / 2;
+            v[idx][1] = j - m / 2;
+            v[idx][0] /= n / 2;
+            v[idx][1] /= m / 2;
+            v[idx][2] = 0.0;
+        }
+}
+    \end{lstlisting}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.55\textwidth]{img/grid_example.png}
+        \caption{Rejilla generada en el plano XY con $n = 10$ y $m = 10$. Cada punto representa un vértice.}
+    \end{figure}
+
+
+    \subsection{Formación de figuras geométricas a partir de la rejilla}
+
+    \subsubsection{Generación del cilindro}
+
+    La función \texttt{create\_cylinder\_verts} construye los vértices de un cilindro de radio constante y altura normalizada, utilizando una malla poligonal con $n$ divisiones angulares y $m$ divisiones verticales. Cada fila de la malla corresponde a un nivel de altura, mientras que cada columna representa un ángulo sobre el círculo base. El cilindro se genera de forma paramétrica, fijando el radio $\rho$ y avanzando en el ángulo \texttt{ang} desde $0$ hasta $2\pi$.
+
+    El ángulo se incrementa por cada paso horizontal en el eje $i$, mientras que la altura se determina en el eje $j$, generando así una superficie cilíndrica compuesta por vértices distribuidos uniformemente.
+
+    \begin{lstlisting}[language=C, caption={Generación de vértices para un cilindro}]
+void create_cylinder_verts(int n, int m, float v[][3]) {
+    float rho = 1;
+    float ang = 0.0;
+    float delta = 2.0 * PI / n;
+    for (int j = 0; j < m; j++) {
+        for (int i = 0; i < n; i++) {
+            int idx = j * n + i;
+            v[idx][2] = rho * cos(ang);
+            v[idx][0] = rho * sin(ang);
+            v[idx][1] = (float) j / m - 0.5;
+            ang += delta;
+        }
+    }
+}
+    \end{lstlisting}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{img/cylinder_example.png}
+        \caption{Representación de una malla cilíndrica generada con $n = 30$ y $m = 15$.}
+    \end{figure}
+
+
+    \subsubsection{Generación del cono}
+
+    La función \texttt{create\_cone\_verts} genera los vértices de un cono truncado, donde cada fila de la malla representa una "rebanada" horizontal del cono desde la base hasta el vértice. A diferencia del cilindro, el radio $\rho$ varía en cada nivel vertical $j$, disminuyendo linealmente desde $1$ hasta $0$. Esto produce una superficie cónica cuyo vértice se encuentra en el extremo superior.
+
+    El ángulo \texttt{ang} se incrementa en pasos de \texttt{delta} para recorrer la circunferencia, mientras que el radio \texttt{rho} se reduce conforme aumenta \texttt{j}. La altura se distribuye uniformemente en el eje $y$, centrada alrededor del origen.
+
+    \begin{lstlisting}[language=C, caption={Generación de vértices para un cono}]
+void create_cone_verts(int n, int m, float v[][3]) {
+    float delta = 2.0 * PI / n;
+    for (int j = 0; j < m; j++) {
+        float rho = 1 - (float) j / m;
+        float ang = 0.0;
+        for (int i = 0; i < n; i++) {
+            int idx = j * n + i;
+            v[idx][2] = rho * cos(ang);
+            v[idx][0] = rho * sin(ang);
+            v[idx][1] = (float) j / m - 0.5;
+            ang += delta;
+        }
+    }
+}
+    \end{lstlisting}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{img/cone_example.png}
+        \caption{Representación de una malla cónica generada con $n = 30$ y $m = 15$.}
+    \end{figure}
+
+
+    \subsubsection{Generación de la esfera}
+
+    La función \texttt{create\_sphere\_verts} genera una malla de vértices que simula la superficie de una esfera mediante coordenadas esféricas. Se utiliza un barrido doble: primero sobre el ángulo polar $\phi$ (de $-\pi/2$ a $\pi/2$) y luego sobre el ángulo azimutal $\theta$ (de $0$ a $2\pi$).
+
+    La variable \texttt{rho}, igual a $\cos(\phi)$, representa el radio de cada círculo horizontal, mientras que \texttt{sin(phi)} proporciona la altura en el eje $y$. Para cada combinación $(\theta, \phi)$ se calcula un punto sobre la superficie de la esfera.
+
+    \begin{lstlisting}[language=C, caption={Generación de vértices para una esfera}]
+void create_sphere_verts(int n, int m, float v[][3]) {
+    float delta_theta = 2.0 * PI / n;
+    float delta_phi = PI / m;
+
+    for (int j = 0; j < m; j++) {
+        float phi = -PI / 2.0 + j * delta_phi;
+        float rho = cos(phi);
+
+        for (int i = 0; i < n; i++) {
+            float theta = i * delta_theta;
+            int idx = j * n + i;
+            v[idx][2] = rho * cos(theta);
+            v[idx][0] = rho * sin(theta);
+            v[idx][1] = sin(phi);
+        }
+    }
+}
+    \end{lstlisting}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{img/sphere_example.png}
+        \caption{Malla generada sobre la superficie de una esfera con $n = 30$ y $m = 15$.}
+    \end{figure}
+
+
+    \subsubsection{Generación del toroide}
+
+    La función \texttt{create\_torus\_verts} genera una malla de vértices que modela la superficie de un toroide, un sólido con forma de dona. Se basa en dos ángulos: $\theta$ que recorre el círculo principal, y $\phi$ que recorre el círculo menor (la sección transversal del toroide).
+
+    Se definen dos radios: $r_1$ para el radio mayor (distancia desde el centro del toroide al centro del tubo) y $r_2$ para el radio menor (radio del tubo), determinado por el parámetro \texttt{ratio} como $r_2 = r_1 \times ratio$.
+
+    Para cada combinación de ángulos, se calcula la posición 3D del vértice usando las siguientes fórmulas:
+    \[
+        \begin{cases}
+            x = \rho \sin \theta \\
+            y = r_2 \sin \phi \\
+            z = \rho \cos \theta
+        \end{cases}
+        \quad \text{donde} \quad \rho = r_1 + r_2 \cos \phi
+    \]
+
+    \begin{lstlisting}[language=C, caption={Generación de vértices para un toroide}]
+void create_torus_verts(int n, int m, float ratio, float v[][3]) {
+    float delta = 2 * PI / n;
+    float delta2 = 2 * PI / m;
+
+    float r1 = 0.75;
+    float r2 = r1 * ratio;
+
+    for (int j = 0; j < m; j++) {
+        float phi = j * delta2;
+        float cos_phi = cos(phi);
+        float sin_phi = sin(phi);
+        for (int i = 0; i < n; i++) {
+            float theta = i * delta;
+            int idx = j * n + i;
+            float rho = r1 + r2 * cos_phi;
+            v[idx][2] = rho * cos(theta);
+            v[idx][0] = rho * sin(theta);
+            v[idx][1] = r2 * sin_phi;
+        }
+    }
+}
+    \end{lstlisting}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{img/torus_example.png}
+        \caption{Malla generada para un toroide con $n = 30$, $m = 15$ y \texttt{ratio} = 0.5.}
+    \end{figure}
+
+
+
+    \subsection{Aplicación de texturas}
+
+    \subsubsection{Aplicación de texturas sobre caras}
+
+    Para enriquecer el renderizado de los objetos 3D, se implementó un sistema básico de mapeo de texturas sobre las caras de la malla. Este sistema permite proyectar una imagen (sprite) 2D sobre los polígonos que forman la superficie, simulando texturas.
+
+    La función principal encargada del dibujo es \texttt{draw\_faces}, que recorre todas las caras de la malla, verifica si están visibles desde la cámara (usando \texttt{points\_towards\_cam}) y proyecta sus vértices en pantalla.
+
+    Si se proporciona un sprite (una imagen pequeña en formato matriz de colores), se realiza el mapeo de la textura sobre el cuadrilátero que define la cara. De lo contrario, se dibuja la cara con un color sólido.
+
+    \begin{lstlisting}[language=C, caption={Dibujo de caras con aplicación opcional de texturas}]
+void draw_faces(mesh *m, int c[3], camera cam, int sprite[16][16][3]) {
+    float n[3];
+    for (int f = 0; f < m->nf; f++) {
+        if (points_towards_cam(m, f, cam, n)) {
+            int *idxs = (int *) &(m->faces[f]);
+            int quad[4][2];
+
+            // Proyectar los 4 vértices de la cara
+            for (int i = 0; i < 4; i++) {
+                int idx = idxs[i];
+                project(m->verts[idx], quad[i], cam);
+            }
+
+            if (sprite != NULL) {
+                // Aplicar textura
+                map_img2quad(quad, sprite);
+            } else {
+                // Dibujar color sólido
+                draw_poly(quad, 4, c);
+            }
+        }
+    }
+}
+    \end{lstlisting}
+
+    \paragraph{Cálculo de la transformación inversa}
+
+    Para mapear la imagen sobre la cara, se calcula una transformación lineal inversa que permite convertir coordenadas de pantalla a coordenadas normalizadas de la textura (entre 0 y 1).
+
+    Esto se realiza con la función \texttt{calc\_m\_inv}, que calcula la inversa de la matriz formada por los vectores de los lados del cuadrilátero proyectado.
+
+    \begin{lstlisting}[language=C, caption={Cálculo de la matriz inversa de transformación}]
+int calc_m_inv(int quad[4][2], float m_inv[2][2]) {
+    float ab[2], ad[2];
+
+    ab[0] = quad[1][0] - quad[0][0];
+    ab[1] = quad[1][1] - quad[0][1];
+
+    ad[0] = quad[3][0] - quad[0][0];
+    ad[1] = quad[3][1] - quad[0][1];
+
+    float detM = ab[0] * ad[1] - ab[1] * ad[0];
+    if (detM <= 0.000001 && detM >= -0.000001) {
+        return 0; // Determinante cero, no se puede invertir
+    }
+
+    m_inv[0][0] = ad[1] / detM;
+    m_inv[0][1] = -ad[0] / detM;
+    m_inv[1][0] = -ab[1] / detM;
+    m_inv[1][1] = ab[0] / detM;
+
+    return 1;
+}
+    \end{lstlisting}
+
+    \paragraph{Mapeo de la imagen sobre el cuadrilátero}
+
+    Con la matriz inversa, se calcula para cada píxel dentro del área delimitada por la cara si pertenece a la textura, y si es así, se calcula la coordenada correspondiente en la imagen para copiar el color.
+
+    Esto se hace en la función \texttt{map\_img2quad}, que recorre todos los píxeles dentro del bounding box del cuadrilátero proyectado y asigna el color correspondiente del sprite.
+
+    \begin{lstlisting}[language=C, caption={Mapeo de la textura al cuadrilátero}]
+void map_img2quad(int quad[4][2], int sprite[16][16][3]) {
+    float m_inv[2][2];
+
+    if (!calc_m_inv(quad, m_inv)) return;
+
+    int min_x = quad[0][0], max_x = quad[0][0];
+    int min_y = quad[0][1], max_y = quad[0][1];
+
+    for (int i = 1; i < 4; i++) {
+        if (quad[i][0] < min_x) min_x = quad[i][0];
+        if (quad[i][0] > max_x) max_x = quad[i][0];
+        if (quad[i][1] < min_y) min_y = quad[i][1];
+        if (quad[i][1] > max_y) max_y = quad[i][1];
+    }
+
+    float dp[2];
+    for (int y = min_y; y <= max_y; y++) {
+        for (int x = min_x; x <= max_x; x++) {
+            dp[0] = x - quad[0][0];
+            dp[1] = y - quad[0][1];
+
+            float u = m_inv[0][0] * dp[0] + m_inv[0][1] * dp[1];
+            float v = m_inv[1][0] * dp[0] + m_inv[1][1] * dp[1];
+
+            if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
+                int tx = (int)(u * 15.999f);
+                int ty = (int)(v * 15.999f);
+
+                set_pixel(x, y, sprite[tx][ty]);
+            }
+        }
+    }
+}
+    \end{lstlisting}
+
+%-------------------- Resultados y capturas --------------------
+    \section{Resultados y análisis}
+    Presentación de capturas de pantalla con explicaciones detalladas.
+
+%-------------------- Conclusión --------------------
+    \section{Conclusión}
+    Reflexión sobre los logros y aprendizajes de la práctica.
+
+%-------------------- Bibliografía --------------------
+    \begin{thebibliography}{9}
+        \bibitem{ref1} Autor, "Título", Fuente, Año.
+        % Agregar más referencias según sea necesario
+    \end{thebibliography}
+
+\end{document}

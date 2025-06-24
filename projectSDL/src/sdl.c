@@ -273,7 +273,7 @@ int main(int argc, char *argv[]) {
                     obj.angY += 15.0;
                     if (obj.angY >= 360.0) obj.angY -= 360.0;
                 } else if (e.key.keysym.sym == SDLK_p) {
-                    //printf("P\n");
+                    printf("is flat_proj: %d\n", cam.is_flat_proj);
                     cam.is_flat_proj = !cam.is_flat_proj;
                 } else if (e.key.keysym.sym == SDLK_1) {
                     //printf("1\n");
